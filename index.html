@@ -388,27 +388,6 @@
       cursor: wait;
     }
 
-    .btn-demo {
-      width: 100%;
-      height: 42px;
-      border-radius: var(--radius-md);
-      background: var(--surface-hover);
-      border: 1px solid var(--border-strong);
-      color: var(--text-main);
-      font-weight: 600;
-      font-size: 14px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      margin-top: 12px;
-      transition: all 0.2s ease;
-    }
-    .btn-demo:hover {
-      border-color: var(--brand-from);
-      color: var(--brand-from);
-      background: var(--brand-subtle);
-    }
 
     .error-box {
       margin-top: 14px;
@@ -1483,11 +1462,6 @@
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" style="width:18px;height:18px;"><polyline points="9 18 15 12 9 6"/></svg>
           </button>
 
-          <button id="demoModeBtn" class="btn-demo" type="button">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" style="width:16px;height:16px;"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-            <span>Explore Demo Student Profile</span>
-          </button>
-
           <div id="loginErrorBox" class="error-box" hidden>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
             <span id="loginErrorText"></span>
@@ -2471,14 +2445,12 @@
         errorBox.hidden = true;
 
         try {
-          const endpoint = isDemo ? '/api/demo' : '/api/data';
-          const options = isDemo
-            ? { method: 'GET' }
-            : {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(credentials)
-              };
+          const endpoint = '/api/data';
+          const options = {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(credentials)
+          };
 
           const response = await fetch(endpoint, options);
           const data = await response.json().catch(() => ({}));
@@ -2549,10 +2521,6 @@
         const password = $('#passwordInput').value.trim();
         if (!username || !password) return;
         fetchAttendanceData({ username, password }, false);
-      });
-
-      $('#demoModeBtn').addEventListener('click', () => {
-        fetchAttendanceData({ username: 'demo', password: 'demo' }, true);
       });
 
       $('#refreshBtn').addEventListener('click', () => {
