@@ -573,20 +573,31 @@
         justify-items: center;
         text-align: center;
       }
-      .app-container { padding: 10px 12px 32px; }
-      header.app-header { padding: 8px 12px; margin-bottom: 14px; top: 6px; }
-      .brand-title { font-size: 15px; }
+      .app-container { padding: 8px 10px 32px; }
+      header.app-header { padding: 8px 10px; margin-bottom: 12px; top: 6px; }
+      .brand-title { font-size: 14px; }
       .brand-tag { display: none; }
       .icon-btn span.desktop-only { display: none; }
-      .icon-btn { padding: 0 8px; height: 32px; }
-      .login-container { margin: 4vh auto 0; padding: 0 4px; }
-      .card-glass { padding: 22px 16px; }
-      .gauge-wrapper { width: 130px; height: 130px; }
-      .gauge-pct { font-size: 24px; }
-      .student-meta-bar { flex-direction: column; align-items: flex-start; gap: 6px; }
-      .hero-controller-row { flex-wrap: wrap; gap: 8px; }
-      .search-filter-deck { flex-wrap: wrap; gap: 8px; }
-      .subject-card { padding: 14px 12px; }
+      .icon-btn { padding: 0 7px; height: 30px; }
+      .login-container { margin: 3vh auto 0; padding: 0 2px; }
+      .card-glass { padding: 20px 14px; }
+      /* Gauge smaller on mobile */
+      .gauge-wrapper { width: 110px; height: 110px; }
+      .gauge-pct { font-size: 20px; }
+      .gauge-label { font-size: 10px; }
+      .gauge-subcount { font-size: 9px; }
+      /* Student meta */
+      .student-meta-bar { flex-direction: column; align-items: flex-start; gap: 4px; }
+      .hero-controller-row { flex-wrap: wrap; gap: 6px; }
+      .search-filter-deck { flex-wrap: wrap; gap: 6px; }
+      /* Subject card — key fix: shrink percentage text so it fits */
+      .subject-card { padding: 12px 10px 12px 14px; }
+      .subj-title-group h3 { font-size: 13px; }
+      .subj-meta-row { font-size: 11px; }
+      .subj-pct { font-size: 15px; letter-spacing: -0.3px; }
+      .subj-count { font-size: 10px; }
+      .subj-pct-group { min-width: 52px; }
+      .bunk-advisor { font-size: 12px; }
       .tabs-bar { display: none; }
     }
 
