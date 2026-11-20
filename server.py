@@ -15,7 +15,9 @@ import logging
 import os
 import socket
 import uuid
-from datetime import datetime
+import time
+from datetime import datetime, timedelta
+from functools import wraps
 
 from flask import Flask, Response, jsonify, make_response, request, send_from_directory
 
@@ -29,6 +31,85 @@ logger = logging.getLogger("mits_one.server")
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 app = Flask(__name__, static_folder=None)
+
+# Rate limiting store
+_rate_limit_store = {}
+
+# Performance tracking
+_performance_log = []
+
+# Analytics store
+_analytics_data = {
+    'total_logins': 0,
+    'successful_logins': 0,
+    'failed_logins': 0,
+    'api_calls': {},
+    'active_sessions': 0,
+    'peak_concurrent': 0
+}
+
+# Rate limiting decorator
+def rate_limit(limit=5, window=60):
+    """Limit requests per IP per time window."""
+    def decorator(f):
+        @wraps(f)
+        def wrapped(*args, **kwargs):
+            client_ip = request.remote_addr
+            key = f"{client_ip}:{request.endpoint}"
+            now = time.time()
+            
+            if key not in _rate_limit_store:
+                _rate_limit_store[key] = []
+            
+            # Clean old timestamps
+            _rate_limit_store[key] = [t for t in _rate_limit_store[key] if now - t < window]
+            
+            if len(_rate_limit_store[key]) >= limit:
+                return jsonify({
+                    "error": "Too many requests. Please wait a moment.",
+                    "retry_after": window
+                }), 429
+            
+            _rate_limit_store[key].append(now)
+            return f(*args, **kwargs)
+        return wrapped
+    return decorator
+
+# Performance tracking decorator
+def track_performance(f):
+    @wraps(f)
+    def wrapped(*args, **kwargs):
+        start = time.time()
+        try:
+            result = f(*args, **kwargs)
+            duration = time.time() - start
+            _performance_log.append({
+                'endpoint': request.endpoint,
+                'method': request.method,
+                'duration': duration,
+                'timestamp': datetime.now().isoformat(),
+                'status': result[1] if isinstance(result, tuple) and len(result) > 1 else 200
+            })
+            # Keep only last 1000 entries
+            if len(_performance_log) > 1000:
+                _performance_log.pop(0)
+            return result
+        except Exception as e:
+            duration = time.time() - start
+            _performance_log.append({
+                'endpoint': request.endpoint,
+                'method': request.method,
+                'duration': duration,
+                'timestamp': datetime.now().isoformat(),
+                'status': 500,
+                'error': str(e)
+            })
+            raise
+    return wrapped
+
+# Analytics tracking
+def track_analytics(endpoint_name):
+    _analytics_data['api_calls'][endpoint_name] = _analytics_data['api_calls'].get(endpoint_name, 0) + 1
 
 # Initialize database schema on startup if DATABASE_URL is configured
 try:
@@ -51,19 +132,34 @@ def get_local_ip():
 
 @app.after_request
 def add_headers(response):
-    """Enable CORS and ensure fresh assets."""
+    """Enable CORS, security headers, and ensure fresh assets."""
     # Allow credentials for cookie-based admin authentication
     origin = request.headers.get("Origin") or "*"
     response.headers["Access-Control-Allow-Origin"] = origin
     response.headers["Access-Control-Allow-Credentials"] = "true"
-    response.headers["Access-Control-Allow-Methods"] = "GET, POST, OPTIONS"
-    response.headers["Access-Control-Allow-Headers"] = "Content-Type, Authorization"
+    response.headers["Access-Control-Allow-Methods"] = "GET, POST, OPTIONS, PUT, DELETE"
+    response.headers["Access-Control-Allow-Headers"] = "Content-Type, Authorization, X-Requested-With"
+
+    # Security headers
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    response.headers["X-Frame-Options"] = "DENY"
+    response.headers["X-XSS-Protection"] = "1; mode=block"
+    response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+    response.headers["Permissions-Policy"] = "geolocation=(), microphone=(), camera=()"
+    
+    # CSP for production security
+    if not app.debug:
+        response.headers["Content-Security-Policy"] = "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self'"
 
     # Prevent caching of HTML pages so frontend updates apply immediately
     if request.path in ("/", "/admin") or request.path.endswith(".html"):
         response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
         response.headers["Pragma"] = "no-cache"
         response.headers["Expires"] = "0"
+    else:
+        # Cache static assets for 1 hour
+        response.headers["Cache-Control"] = "public, max-age=3600"
+    
     return response
 
 
@@ -113,6 +209,8 @@ def demo_data():
 # ── Student Authentication & Attendance Data Endpoint ────────────────────────
 
 @app.route("/api/data", methods=["POST", "OPTIONS"])
+@rate_limit(limit=3, window=60)  # 3 attempts per minute for login
+@track_performance
 def data():
     if request.method == "OPTIONS":
         return "", 204
@@ -251,6 +349,8 @@ def session_logout():
 # ── Admin Authentication Endpoints ───────────────────────────────────────────
 
 @app.route("/api/admin/auth", methods=["POST", "OPTIONS"])
+@rate_limit(limit=5, window=300)  # 5 attempts per 5 minutes for admin
+@track_performance
 def admin_auth_login():
     if request.method == "OPTIONS":
         return "", 204
