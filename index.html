@@ -1077,6 +1077,89 @@
     /* ==========================================================================
        TODAY'S SCHEDULE & TIMETABLE VIEWS
        ========================================================================== */
+    /* ── Holiday / Tomorrow Banner ── */
+    #holidayBanner {
+      position: fixed;
+      bottom: 80px;
+      left: 50%;
+      transform: translateX(-50%) translateY(20px);
+      z-index: 500;
+      min-width: 280px;
+      max-width: 92vw;
+      background: linear-gradient(135deg, #1e1b4b, #312e81);
+      border: 1px solid rgba(99,102,241,0.5);
+      border-radius: 18px;
+      padding: 16px 20px;
+      box-shadow: 0 8px 32px rgba(99,102,241,0.35);
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.5s ease, transform 0.5s ease;
+    }
+    #holidayBanner.show {
+      opacity: 1;
+      pointer-events: auto;
+      transform: translateX(-50%) translateY(0);
+    }
+    .holiday-emoji {
+      font-size: 36px;
+      animation: holidayBounce 1.2s ease-in-out infinite;
+      flex-shrink: 0;
+    }
+    @keyframes holidayBounce {
+      0%,100% { transform: translateY(0) rotate(-5deg); }
+      50%      { transform: translateY(-8px) rotate(5deg); }
+    }
+    .holiday-text { flex: 1; }
+    .holiday-text strong { display: block; font-size: 15px; font-weight: 800; color: #fff; }
+    .holiday-text span { font-size: 12px; color: rgba(255,255,255,0.65); }
+    .holiday-close {
+      background: rgba(255,255,255,0.1);
+      border: none;
+      border-radius: 50%;
+      width: 26px; height: 26px;
+      color: #fff;
+      font-size: 16px;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    /* ── Streak Banner ── */
+    #streakBanner {
+      background: linear-gradient(135deg, var(--surface), var(--surface-hover));
+      border: 1px solid var(--border-strong);
+      border-radius: var(--radius-md);
+      padding: 12px 16px;
+      margin-bottom: 14px;
+      display: none;
+      align-items: center;
+      gap: 10px;
+      font-size: 13px;
+      font-weight: 600;
+    }
+    #streakBanner.visible { display: flex; }
+    /* ── Low Attendance Alert ── */
+    #lowAttAlert {
+      background: rgba(239,68,68,0.08);
+      border: 1px solid rgba(239,68,68,0.3);
+      border-radius: var(--radius-md);
+      padding: 12px 16px;
+      margin-bottom: 14px;
+      display: none;
+      align-items: center;
+      gap: 10px;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--bad);
+    }
+    #lowAttAlert.visible { display: flex; }
+    /* ── Share Button ── */
+    #shareBtn {
+      display: none;
+    }
+    #shareBtn.visible { display: inline-flex; }
     .today-hero-card {
       background: var(--surface);
       border: 1px solid var(--border);
@@ -1511,6 +1594,12 @@
           <svg id="themeIconMoon" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
         </button>
 
+        <!-- Share Button -->
+        <button id="shareBtn" class="icon-btn" title="Share Attendance" hidden>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+          <span class="desktop-only">Share</span>
+        </button>
+
         <!-- Logout Button -->
         <button id="logoutBtn" class="icon-btn" title="Sign out" hidden>
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
@@ -1583,6 +1672,16 @@
          MAIN APP DASHBOARD (SHOWN WHEN LOGGED IN)
          ====================================================================== -->
     <main id="mainAppView" hidden>
+
+      <!-- Holiday Tomorrow Banner -->
+      <div id="holidayBanner">
+        <div class="holiday-emoji" id="holidayEmoji">🎉</div>
+        <div class="holiday-text">
+          <strong id="holidayTitle">Tomorrow is a Holiday!</strong>
+          <span id="holidaySubtitle">Enjoy your day off 🙌</span>
+        </div>
+        <button class="holiday-close" onclick="document.getElementById('holidayBanner').classList.remove('show')">✕</button>
+      </div>
 
       <!-- Print Header (Visible only when printed) -->
       <div class="print-header print-only">
@@ -1710,6 +1809,16 @@
 
       <!-- TAB 1: SUBJECTS VIEW & INTERACTIVE SIMULATOR -->
       <section id="tabSubjectsView">
+        <!-- Streak Banner -->
+        <div id="streakBanner">
+          <span style="font-size:22px;">🔥</span>
+          <span id="streakText">You're on a streak!</span>
+        </div>
+        <!-- Low Attendance Alert -->
+        <div id="lowAttAlert">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" style="width:18px;height:18px;flex-shrink:0;"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          <span id="lowAttText">Some subjects need attention!</span>
+        </div>
         <div class="search-filter-deck">
           <div class="search-input-box">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
@@ -1883,7 +1992,7 @@
       const remove = (k) => { try { localStorage.removeItem(k); } catch (e) {} };
 
       // ── GLOBAL APPLICATION STATE ─────────────────────────────────────────────
-      const state = {
+      const state = window._mitsState = {
         data: null,
         activeTab: 'subjects',
         selectedDay: DAYS_ORDER[Math.max(0, Math.min(5, (new Date().getDay() + 6) % 7))], // default to current college weekday
@@ -2533,8 +2642,15 @@
         $('#mobileNavBar').hidden = false;
         $('#refreshBtn').hidden = false;
         $('#printBtn').hidden = false;
+        $('#shareBtn').hidden = false;
         $('#logoutBtn').hidden = false;
         renderAll();
+        setTimeout(() => {
+          if (typeof checkTomorrowHoliday === 'function') checkTomorrowHoliday();
+          if (typeof renderStreakAndAlerts === 'function') renderStreakAndAlerts();
+        }, 300);
+        checkTomorrowHoliday();
+        renderStreakAndAlerts();
       }
 
       async function fetchAttendanceData(credentials, isDemo = false) {
@@ -2738,3 +2854,121 @@
   </footer>
 </body>
 </html>
+<script>
+  // ── INDIAN HOLIDAYS & FESTIVALS ──
+  const INDIAN_HOLIDAYS = [
+    { month:1,  day:1,  name:"New Year's Day",              emoji:"🎆", type:"holiday"  },
+    { month:1,  day:14, name:"Makar Sankranti / Pongal",    emoji:"🪁", type:"festival" },
+    { month:1,  day:26, name:"Republic Day",                emoji:"🇮🇳", type:"holiday"  },
+    { month:3,  day:8,  name:"Maha Shivaratri",             emoji:"🔱", type:"festival" },
+    { month:3,  day:25, name:"Holi",                        emoji:"🎨", type:"festival" },
+    { month:4,  day:9,  name:"Ugadi / Telugu New Year",     emoji:"🌸", type:"festival" },
+    { month:4,  day:14, name:"Dr. Ambedkar Jayanti",        emoji:"🇮🇳", type:"holiday"  },
+    { month:4,  day:18, name:"Good Friday",                 emoji:"✝️",  type:"holiday"  },
+    { month:5,  day:1,  name:"Labour Day",                  emoji:"🛠️", type:"holiday"  },
+    { month:8,  day:15, name:"Independence Day",            emoji:"🇮🇳", type:"holiday"  },
+    { month:8,  day:26, name:"Janmashtami",                 emoji:"🐄", type:"festival" },
+    { month:9,  day:5,  name:"Teachers' Day",               emoji:"👨‍🏫", type:"holiday"  },
+    { month:10, day:2,  name:"Gandhi Jayanti",              emoji:"🪡", type:"holiday"  },
+    { month:10, day:2,  name:"Dussehra",                    emoji:"🎊", type:"festival" },
+    { month:10, day:20, name:"Diwali",                      emoji:"🪔", type:"festival" },
+    { month:11, day:1,  name:"AP Formation Day",            emoji:"🇮🇳", type:"holiday"  },
+    { month:11, day:15, name:"Guru Nanak Jayanti",          emoji:"🙏", type:"festival" },
+    { month:12, day:25, name:"Christmas",                   emoji:"🎄", type:"festival" },
+  ];
+
+  function checkTomorrowHoliday() {
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    const tDay   = tomorrow.getDate();
+    const tMonth = tomorrow.getMonth() + 1;
+    const tDow   = tomorrow.getDay();
+
+    const banner   = document.getElementById('holidayBanner');
+    const emoji    = document.getElementById('holidayEmoji');
+    const title    = document.getElementById('holidayTitle');
+    const subtitle = document.getElementById('holidaySubtitle');
+    if (!banner) return;
+
+    const festival = INDIAN_HOLIDAYS.find(h => h.month === tMonth && h.day === tDay);
+    if (festival) {
+      emoji.textContent    = festival.emoji;
+      title.textContent    = 'Tomorrow — ' + festival.name + '!';
+      subtitle.textContent = festival.type === 'festival'
+        ? 'Wishing you a joyful celebration 🎉'
+        : 'National Holiday — No classes tomorrow 🌟';
+      setTimeout(() => banner.classList.add('show'), 1200);
+      return;
+    }
+    if (tDow === 0) {
+      emoji.textContent    = '🌞';
+      title.textContent    = 'Tomorrow is Sunday!';
+      subtitle.textContent = 'Rest up, recharge, and come back strong 💪';
+      setTimeout(() => banner.classList.add('show'), 1200);
+      return;
+    }
+    if (tDow === 6) {
+      emoji.textContent    = '🎉';
+      title.textContent    = 'Tomorrow is Saturday!';
+      subtitle.textContent = 'Enjoy your weekend 😎';
+      setTimeout(() => banner.classList.add('show'), 1200);
+    }
+  }
+
+  function renderStreakAndAlerts() {
+    const data = window._mitsState && window._mitsState.data;
+    if (!data || !data.attendance) return;
+    const subjects = data.attendance;
+
+    const critical = subjects.filter(s => (+s.percentage || 0) < 65);
+    const low      = subjects.filter(s => (+s.percentage || 0) < 75);
+    const lowAlert = document.getElementById('lowAttAlert');
+    const lowText  = document.getElementById('lowAttText');
+    if (lowAlert && lowText) {
+      if (critical.length > 0) {
+        lowText.textContent = '⚠️ ' + critical.length + ' subject' + (critical.length > 1 ? 's' : '') + ' below 65% — Detention risk! Attend immediately.';
+        lowAlert.classList.add('visible');
+      } else if (low.length > 0) {
+        lowText.textContent = '📌 ' + low.length + ' subject' + (low.length > 1 ? 's' : '') + ' below 75% — Attend more classes.';
+        lowAlert.classList.add('visible');
+      }
+    }
+
+    const todayPresent = (data.todaysClasses || []).filter(c => /present/i.test(c.status || '')).length;
+    const streakBanner = document.getElementById('streakBanner');
+    const streakText   = document.getElementById('streakText');
+    if (streakBanner && streakText) {
+      if (todayPresent >= 3) {
+        streakText.textContent = '🔥 ' + todayPresent + ' classes attended today — Keep it up!';
+        streakBanner.classList.add('visible');
+      } else if (todayPresent > 0) {
+        streakText.textContent = '✅ ' + todayPresent + ' class' + (todayPresent > 1 ? 'es' : '') + ' attended today. Stay consistent!';
+        streakBanner.classList.add('visible');
+      }
+    }
+  }
+
+  // Share button
+  document.getElementById('shareBtn') && document.getElementById('shareBtn').addEventListener('click', () => {
+    const data = window._mitsState && window._mitsState.data;
+    if (!data) return;
+    const student  = data.student || {};
+    const subjects = data.attendance || [];
+    const overall  = subjects.length
+      ? (subjects.reduce((s, x) => s + (+x.percentage || 0), 0) / subjects.length).toFixed(1)
+      : '0.0';
+    const lowCount = subjects.filter(s => (+s.percentage || 0) < 75).length;
+    const text = [
+      '🏫 MITS ONE — Attendance Report',
+      '👤 ' + (student.name || 'Student') + ' | ' + (student.usn || ''),
+      '📊 Overall: ' + overall + '%',
+      lowCount > 0 ? '⚠️ ' + lowCount + ' subject(s) below 75%' : '✅ All subjects above 75%',
+      '🔗 https://mits-one-attendance01.vercel.app'
+    ].join('\n');
+    if (navigator.share) {
+      navigator.share({ title: 'My MITS Attendance', text });
+    } else {
+      navigator.clipboard.writeText(text).then(() => alert('Copied to clipboard!'));
+    }
+  });
+</script>
