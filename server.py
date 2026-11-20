@@ -79,6 +79,16 @@ def admin_page():
     return send_from_directory(HERE, "admin.html")
 
 
+@app.route("/logo.png", methods=["GET"])
+def logo():
+    return send_from_directory(HERE, "logo.png")
+
+
+@app.route("/intro.mp4", methods=["GET"])
+def intro_video():
+    return send_from_directory(HERE, "intro.mp4")
+
+
 # ── Public & Health Endpoints ────────────────────────────────────────────────
 
 @app.route("/api/health", methods=["GET"])
