@@ -10,3 +10,5 @@ build_lambda/
 node_modules/
 .env.local
 .env
+.vercel
+.env*
